@@ -52,7 +52,8 @@ struct Astro: Codable {
     let is_moon_up: Int
     let is_sun_up: Int
 }
-struct Hour: Codable {
+struct Hour: Codable, Identifiable {
+    let id = UUID()
     let time_epoch: Int
     let time: String
     let temp_c: Double

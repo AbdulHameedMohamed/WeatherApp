@@ -15,7 +15,7 @@ struct WeatherScreen: View {
         Group {
             if let weatherData = weatherViewModel.weatherData {
                 ZStack {
-                    getBackground(for: weatherData).ignoresSafeArea()
+                    getBackground(for: weatherData.current.condition.text.lowercased()).ignoresSafeArea()
                     ContentView(weatherData: weatherData)
                 }
             } else {
@@ -27,8 +27,8 @@ struct WeatherScreen: View {
         }
     }
     
-    private func getBackground(for weatherData: WeatherData) -> some View {
-        let isDaytime = isDaytimeNow(weatherData: weatherData)
+    private func getBackground(for condition: String) -> some View {
+        let isDaytime = isDaytimeNow(condition: condition)
         
         if isDaytime {
             return Image("Day")
@@ -41,8 +41,8 @@ struct WeatherScreen: View {
         }
     }
     
-    private func isDaytimeNow(weatherData: WeatherData) -> Bool {
-        return weatherData.current.condition.text.lowercased() == "sunny"
+    private func isDaytimeNow(condition: String) -> Bool {
+        return condition == "sunny"
     }
 }
 
@@ -89,7 +89,7 @@ struct TopSection: View {
                     }
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 50, height: 50)
+                    .frame(width: 80, height: 80)
             }
         }
         .padding()

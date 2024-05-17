@@ -6,18 +6,79 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct DayWeatherScreen: View {
     let dayWeatherData: Forecastday
+    let isDayTime : Bool = false
+
+    var body: some View {
+        Group {
+            ZStack {
+                if isDayTime {
+                    Image("Day")
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image("Night")
+                        .resizable()
+                        .scaledToFill()
+                }
+                DayContentView(dayWeatherData: dayWeatherData)
+            }
+        }
+    }
+}
+
+struct DayContentView: View {
+    let dayWeatherData: Forecastday
+    
+    
     
     var body: some View {
-        VStack {
-            Text("Weather details for \(dayWeatherData.date)")
-            Text("High: \(Int(dayWeatherData.day.maxtemp_c))°C")
-            Text("Low: \(Int(dayWeatherData.day.mintemp_c))°C")
-            // Add more weather details as needed
+        ScrollView {
+            LazyVStack(spacing: 10) {
+                ForEach(dayWeatherData.hour) { hour in
+                    HourRow(hour: hour)
+                }
+            }
+            .padding()
+            .background(Color.white.opacity(0))
         }
-        .padding()
+    }
+}
+
+struct HourRow: View {
+    let hour: Hour
+    var body: some View {
+        HStack {
+            Text(formatTime(from: hour.time))
+            if let iconURL = URL(string: "https:" + hour.condition.icon) {
+                KFImage(iconURL)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+            }
+            Text("\(Int(hour.temp_c))°C")
+        }
+    }
+    
+    private func formatTime(from timeString: String) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        let date = dateFormatter.date(from: timeString) ?? Date()
+        
+        dateFormatter.dateFormat = "h:mm a"
+        return dateFormatter.string(from: date)
+    }
+    
+    
+    private func weatherIcon(from urlString: String) -> String {
+        guard let url = URL(string: "https:\(urlString)") else {
+            return "questionmark"
+        }
+        let imageName = url.lastPathComponent
+        return String(imageName.prefix(while: { $0 != "." }))
     }
 }
 
@@ -41,7 +102,7 @@ struct DayWeatherScreen_Previews: PreviewProvider {
                 avgvis_km: 10.0,
                 avgvis_miles: 6.0,
                 avghumidity: 50,
-                condition: Condition(text: "Partly cloudy", icon: "https://www.weather.com/images/icon-partly-cloudy.svg", code: 1003)
+                condition: Condition(text: "Partly cloudy", icon: "//cdn.weatherapi.com/weather/64x64/day/116.png", code: 1003)
             ),
             astro: Astro(
                 sunrise: "05:30 AM",
