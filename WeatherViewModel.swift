@@ -30,7 +30,6 @@ class WeatherViewModel: ObservableObject {
                 print("Error fetching weather data: \(error)")
             } else {
                 self.weatherData = weatherData
-                print("Weather data fetched successfully to ViewModel: \(String(describing: weatherData))")
             }
         }
     }

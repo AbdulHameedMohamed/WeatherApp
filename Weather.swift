@@ -89,7 +89,8 @@ struct Hour: Codable {
     let uv: Double
 }
 
-struct Forecastday: Codable {
+struct Forecastday: Codable, Identifiable {
+    let id = UUID()
     let date: String
     let date_epoch: Int
     let day: Day

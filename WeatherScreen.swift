@@ -52,10 +52,14 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 10) {
             TopSection(weatherData: weatherData)
+            MidSection(forecastData: weatherData.forecast.forecastday)
             Spacer()
         }
         .padding()
         .frame(maxWidth: .infinity)
+        .onAppear {
+            print(weatherData.forecast.forecastday)
+        }
     }
 }
 
@@ -92,6 +96,50 @@ struct TopSection: View {
     }
 }
 
+struct MidSection: View {
+    let forecastData: [Forecastday]
+    
+    var body: some View {
+        List {
+            ForEach(forecastData) { forecast in
+                HStack(spacing: 5) {
+                    Text(getDayName(from: forecast.date))
+                        .font(.headline)
+                    if let iconURL = URL(string: "https:" + forecast.day.condition.icon) {
+                        KFImage(iconURL)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 30, height: 30)
+                    }
+                    Text("High: \(Int(forecast.day.maxtemp_c))°C  Low: \(Int(forecast.day.mintemp_c))°C")
+                        .font(.subheadline)
+                }
+                .padding()
+                .background(Color.white.opacity(0))
+                .cornerRadius(10)
+                .shadow(radius: 3)
+            }
+            .listRowBackground(Color.white.opacity(0))
+        }
+        .offset(y: 75)
+        .navigationTitle("3-Day Forcast")
+        .navigationBarTitleDisplayMode(.inline)
+        .listStyle(PlainListStyle())
+        .background(Color.white.opacity(0))
+        .padding()
+    }
+    
+    func getDayName(from dateString: String) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        guard let date = dateFormatter.date(from: dateString) else {
+            return ""
+        }
+        let dayFormatter = DateFormatter()
+        dayFormatter.dateFormat = "EEEE"
+        return dayFormatter.string(from: date)
+    }
+}
 #Preview {
     WeatherScreen()
 }
