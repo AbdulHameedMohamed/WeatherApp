@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var weatherViewModel = WeatherViewModel(dataSource: WeatherDataSource())
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -16,6 +17,14 @@ struct ContentView: View {
             Text("Hello, world!")
         }
         .padding()
+        .onAppear {
+            weatherViewModel.getWeather()
+        }
+        .onReceive(weatherViewModel.$weatherData) { weatherData in
+            if let weatherData = weatherData {
+                print("Weather data observed in ContentView: \(weatherData)")
+            }
+        }
     }
 }
 
