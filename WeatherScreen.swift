@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct WeatherScreen: View {
     @StateObject private var weatherViewModel = WeatherViewModel(dataSource: WeatherDataSource())
@@ -49,13 +50,45 @@ struct ContentView: View {
     let weatherData: WeatherData
     
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        VStack(spacing: 10) {
+            TopSection(weatherData: weatherData)
+            Spacer()
         }
         .padding()
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct TopSection: View {
+    let weatherData: WeatherData
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(weatherData.location.name)
+                .font(.largeTitle)
+            Text("\(Int(weatherData.current.temp_c))°C")
+                .font(.title)
+            Text(weatherData.current.condition.text)
+                .font(.headline)
+            HStack {
+                Text("High: \(Int(weatherData.forecast.forecastday[0].day.maxtemp_c))°C")
+                    .font(.subheadline)
+                Text("Low: \(Int(weatherData.forecast.forecastday[0].day.mintemp_c))°C")
+                    .font(.subheadline)
+            }
+            let iconURLString = "https:" + weatherData.current.condition.icon
+            if let iconURL = URL(string: iconURLString) {
+                KFImage(iconURL)
+                    .placeholder {
+                        ProgressView()
+                    }
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 50, height: 50)
+            }
+        }
+        .padding()
+        .offset(y: 125)
     }
 }
 
