@@ -53,6 +53,7 @@ struct ContentView: View {
         VStack(spacing: 10) {
             TopSection(weatherData: weatherData)
             MidSection(forecastData: weatherData.forecast.forecastday)
+            BottomSection(weatherData: weatherData)
             Spacer()
         }
         .padding()
@@ -92,7 +93,7 @@ struct TopSection: View {
             }
         }
         .padding()
-        .offset(y: 125)
+        .offset(y: 100)
     }
 }
 
@@ -102,7 +103,7 @@ struct MidSection: View {
     var body: some View {
         List {
             ForEach(forecastData) { forecast in
-                HStack(spacing: 5) {
+                HStack(spacing: 0) {
                     Text(getDayName(from: forecast.date))
                         .font(.headline)
                     if let iconURL = URL(string: "https:" + forecast.day.condition.icon) {
@@ -140,6 +141,45 @@ struct MidSection: View {
         return dayFormatter.string(from: date)
     }
 }
+
+struct BottomSection: View {
+    let weatherData: WeatherData
+    
+    let weatherAttributes = ["Visibility", "Humidity", "Feels Like", "Pressure"]
+    let weatherValues: [String]
+    
+    init(weatherData: WeatherData) {
+        self.weatherData = weatherData
+        self.weatherValues = [
+            "\(weatherData.current.vis_km) km",
+            "\(weatherData.current.humidity)%",
+            "\(Int(weatherData.current.feelslike_c))°C",
+            "\(weatherData.current.pressure_mb) mb"
+        ]
+    }
+    
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 2), spacing: 10) {
+            ForEach(0..<weatherAttributes.count, id: \.self) { index in
+                VStack(alignment: .center, spacing: 5) {
+                    Text(weatherAttributes[index])
+                        .font(.headline)
+                    Text(weatherValues[index])
+                        .font(.subheadline)
+                }
+                .padding()
+                .background(Color.white.opacity(0.5))
+                .cornerRadius(10)
+                .shadow(radius: 3)
+            }
+        }
+        .offset(y: -50)
+        .padding()
+        .background(Color.white.opacity(0))
+        
+    }
+}
+
 #Preview {
     WeatherScreen()
 }
