@@ -101,26 +101,30 @@ struct MidSection: View {
     let forecastData: [Forecastday]
     
     var body: some View {
-        List {
-            ForEach(forecastData) { forecast in
-                HStack(spacing: 0) {
-                    Text(getDayName(from: forecast.date))
-                        .font(.headline)
-                    if let iconURL = URL(string: "https:" + forecast.day.condition.icon) {
-                        KFImage(iconURL)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 30, height: 30)
+        NavigationView {
+            List {
+                ForEach(forecastData) { forecast in
+                    NavigationLink(destination: DayWeatherScreen(dayWeatherData: forecast)) {
+                        HStack(spacing: 0) {
+                            Text(getDayName(from: forecast.date))
+                                .font(.headline)
+                            if let iconURL = URL(string: "https:" + forecast.day.condition.icon) {
+                                KFImage(iconURL)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 30, height: 30)
+                            }
+                            Text("High: \(Int(forecast.day.maxtemp_c))°C  Low: \(Int(forecast.day.mintemp_c))°C")
+                                .font(.subheadline)
+                        }
                     }
-                    Text("High: \(Int(forecast.day.maxtemp_c))°C  Low: \(Int(forecast.day.mintemp_c))°C")
-                        .font(.subheadline)
+                    .padding()
+                    .background(Color.white.opacity(0))
+                    .cornerRadius(10)
+                    .shadow(radius: 3)
                 }
-                .padding()
-                .background(Color.white.opacity(0))
-                .cornerRadius(10)
-                .shadow(radius: 3)
+                .listRowBackground(Color.white.opacity(0))
             }
-            .listRowBackground(Color.white.opacity(0))
         }
         .offset(y: 75)
         .navigationTitle("3-Day Forcast")
@@ -173,7 +177,7 @@ struct BottomSection: View {
                 .shadow(radius: 3)
             }
         }
-        .offset(y: -50)
+        .offset(y: -75)
         .padding()
         .background(Color.white.opacity(0))
         
