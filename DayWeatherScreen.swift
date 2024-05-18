@@ -10,7 +10,6 @@ import Kingfisher
 
 struct DayWeatherScreen: View {
     let dayWeatherData: Forecastday
-    let isDayTime : Bool = false
 
     var body: some View {
         Group {

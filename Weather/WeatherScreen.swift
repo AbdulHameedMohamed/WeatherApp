@@ -8,6 +8,8 @@
 import SwiftUI
 import Kingfisher
 
+var isDayTime: Bool = true
+
 struct WeatherScreen: View {
     @StateObject private var weatherViewModel = WeatherViewModel(dataSource: WeatherDataSource())
     
@@ -18,6 +20,7 @@ struct WeatherScreen: View {
                     getBackground(for: weatherData.current.condition.text.lowercased()).ignoresSafeArea()
                     ContentView(weatherData: weatherData)
                 }
+                
             } else {
                 ProgressView("Fetching Weather...")
             }
@@ -28,9 +31,9 @@ struct WeatherScreen: View {
     }
     
     private func getBackground(for condition: String) -> some View {
-        let isDaytime = isDaytimeNow(condition: condition)
+        isDayTime = isDaytimeNow(condition: condition)
         
-        if isDaytime {
+        if isDayTime {
             return Image("Day")
                 .resizable()
                 .scaledToFill()
