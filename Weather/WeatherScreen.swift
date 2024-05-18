@@ -12,6 +12,7 @@ var isDayTime: Bool = true
 
 struct WeatherScreen: View {
     @StateObject private var weatherViewModel = WeatherViewModel(dataSource: WeatherDataSource())
+    @StateObject var locationManager = LocationManager()
     
     var body: some View {
         Group {
@@ -19,14 +20,17 @@ struct WeatherScreen: View {
                 ZStack {
                     getBackground(for: weatherData.current.condition.text.lowercased()).ignoresSafeArea()
                     ContentView(weatherData: weatherData)
+                        .environmentObject(locationManager)
                 }
-                
             } else {
                 ProgressView("Fetching Weather...")
             }
         }
         .onAppear {
-            weatherViewModel.getWeather()
+            if let latitude = locationManager.location?.coordinate.latitude,
+                let longitude = locationManager.location?.coordinate.longitude {
+                weatherViewModel.getWeather(location: "\(latitude),\(longitude)")
+            }
         }
     }
     
@@ -50,6 +54,8 @@ struct WeatherScreen: View {
 }
 
 struct ContentView: View {
+    @EnvironmentObject var locationManager: LocationManager
+    
     let weatherData: WeatherData
     
     var body: some View {

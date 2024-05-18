@@ -16,10 +16,10 @@ class WeatherViewModel: ObservableObject {
         self.dataSource = dataSource
     }
     
-    func getWeather() {
+    func getWeather(location: String) {
         let parameters: [String: Any] = [
             "key": ApiURLs.API_KEY.rawValue,
-            "q": "30.228341,31.479895",
+            "q": location,
             "days": 3,
             "aqi": "no",
             "alerts": "no"
