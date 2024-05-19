@@ -8,7 +8,7 @@
 import SwiftUI
 import Kingfisher
 
-var isDayTime: Bool = true
+var isMorningTime: Bool = true
 
 struct WeatherScreen: View {
     @StateObject private var weatherViewModel = WeatherViewModel(dataSource: WeatherDataSource())
@@ -17,10 +17,16 @@ struct WeatherScreen: View {
     var body: some View {
         Group {
             if let weatherData = weatherViewModel.weatherData {
+                let firstHour = weatherData.forecast.forecastday.first?.hour.first
+                let isMorning = isMorningTime(hour: firstHour)
+                
                 ZStack {
-                    getBackground(for: weatherData.current.condition.text.lowercased()).ignoresSafeArea()
+                    getBackground(isMorning: isMorning)
+                        .ignoresSafeArea()
+                    
                     ContentView(weatherData: weatherData)
                         .environmentObject(locationManager)
+                        .foregroundColor(isMorning ? .black : .white)
                 }
             } else {
                 ProgressView("Fetching Weather...")
@@ -28,28 +34,30 @@ struct WeatherScreen: View {
         }
         .onAppear {
             if let latitude = locationManager.location?.coordinate.latitude,
-                let longitude = locationManager.location?.coordinate.longitude {
+               let longitude = locationManager.location?.coordinate.longitude {
                 weatherViewModel.getWeather(location: "\(latitude),\(longitude)")
             }
         }
     }
     
-    private func getBackground(for condition: String) -> some View {
-        isDayTime = isDaytimeNow(condition: condition)
-        
-        if isDayTime {
-            return Image("Day")
-                .resizable()
-                .scaledToFill()
-        } else {
-            return Image("Night")
-                .resizable()
-                .scaledToFill()
+    private func isMorningTime(hour: Hour?) -> Bool {
+        guard let hour = hour else {
+            return true
         }
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH"
+        if let time = dateFormatter.date(from: hour.time) {
+            let calendar = Calendar.current
+            let hour = calendar.component(.hour, from: time)
+            isMorningTime = hour >= 5 && hour < 18
+            return isMorningTime
+        }
+        return true
     }
     
-    private func isDaytimeNow(condition: String) -> Bool {
-        return condition == "sunny"
+    private func getBackground(isMorning: Bool) -> Image {
+        return isMorning ? Image("Day") : Image("Night")
     }
 }
 
@@ -59,17 +67,19 @@ struct ContentView: View {
     let weatherData: WeatherData
     
     var body: some View {
-        VStack(spacing: 10) {
-            TopSection(weatherData: weatherData)
-            MidSection(forecastData: weatherData.forecast.forecastday)
-            BottomSection(weatherData: weatherData)
-            Spacer()
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .onAppear {
-            print(weatherData.forecast.forecastday)
-        }
+        NavigationView {
+            VStack(spacing: 10) {
+                TopSection(weatherData: weatherData)
+                MidSection(forecastData: weatherData.forecast.forecastday)
+                BottomSection(weatherData: weatherData)
+                Spacer()
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .onAppear {
+                print(weatherData.forecast.forecastday)
+            }
+        }.background(Color.white.opacity(0))
     }
 }
 
@@ -110,7 +120,6 @@ struct MidSection: View {
     let forecastData: [Forecastday]
     
     var body: some View {
-        NavigationView {
             List {
                 ForEach(forecastData) { forecast in
                     NavigationLink(destination: DayWeatherScreen(dayWeatherData: forecast)) {
@@ -133,7 +142,6 @@ struct MidSection: View {
                     .shadow(radius: 3)
                 }
                 .listRowBackground(Color.white.opacity(0))
-            }
         }
         .offset(y: 75)
         .navigationTitle("3-Day Forcast")
@@ -146,12 +154,21 @@ struct MidSection: View {
     func getDayName(from dateString: String) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
+        
         guard let date = dateFormatter.date(from: dateString) else {
             return ""
         }
-        let dayFormatter = DateFormatter()
-        dayFormatter.dateFormat = "EEEE"
-        return dayFormatter.string(from: date)
+        
+        let today = Date()
+        let calendar = Calendar.current
+        
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else {
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "EEEE"
+            return dayFormatter.string(from: date)
+        }
     }
 }
 

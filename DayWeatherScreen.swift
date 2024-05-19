@@ -14,7 +14,7 @@ struct DayWeatherScreen: View {
     var body: some View {
         Group {
             ZStack {
-                if isDayTime {
+                if isMorningTime {
                     Image("Day")
                         .resizable()
                         .scaledToFill()
@@ -31,27 +31,48 @@ struct DayWeatherScreen: View {
 
 struct DayContentView: View {
     let dayWeatherData: Forecastday
-    
-    
-    
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 10) {
-                ForEach(dayWeatherData.hour) { hour in
-                    HourRow(hour: hour)
+                ForEach(Array(hoursOfDay().enumerated()), id: \.1.id) { index, hour in
+                    HourRow(hour: hour, isFirstHour: index == 0)
                 }
             }
             .padding()
             .background(Color.white.opacity(0))
         }
     }
+    
+    private func hoursOfDay() -> [Hour] {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        let currentHour = calendar.component(.hour, from: now)
+        
+        return dayWeatherData.hour.filter { hour in
+            let hourOfDay = calendar.component(.hour, from: Date(timeIntervalSince1970: TimeInterval(hour.time_epoch)))
+            return hourOfDay >= currentHour
+        }
+    }
 }
 
 struct HourRow: View {
     let hour: Hour
+    var isFirstHour: Bool
+    
+    init(hour: Hour, isFirstHour: Bool) {
+        self.hour = hour
+        self.isFirstHour = isFirstHour
+    }
+    
     var body: some View {
         HStack {
-            Text(formatTime(from: hour.time))
+            if isFirstHour {
+                Text("Now")
+            } else {
+                Text(formatTime(from: hour.time))
+            }
             if let iconURL = URL(string: "https:" + hour.condition.icon) {
                 KFImage(iconURL)
                     .resizable()
@@ -65,21 +86,17 @@ struct HourRow: View {
     private func formatTime(from timeString: String) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
-        let date = dateFormatter.date(from: timeString) ?? Date()
-        
-        dateFormatter.dateFormat = "h:mm a"
-        return dateFormatter.string(from: date)
-    }
-    
-    
-    private func weatherIcon(from urlString: String) -> String {
-        guard let url = URL(string: "https:\(urlString)") else {
-            return "questionmark"
+            
+        guard let date = dateFormatter.date(from: timeString) else {
+            return ""
         }
-        let imageName = url.lastPathComponent
-        return String(imageName.prefix(while: { $0 != "." }))
+            
+        let dateFormatter2 = DateFormatter()
+        dateFormatter2.dateFormat = "h:mm a"
+        return dateFormatter2.string(from: date)
     }
 }
+
 
 struct DayWeatherScreen_Previews: PreviewProvider {
     static var previews: some View {
